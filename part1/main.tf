@@ -12,16 +12,39 @@ terraform {
 
 provider "docker" {}
 
-resource "docker_image" "nginx" {
-  name         = "nginx:latest"
+variable image_name {
+  type = string
+  description = "name of Docker image to use"
+  #default = "nginx:latest"
+}
+
+variable command {
+  type = list(string)
+  description = "command to run in container"
+  default = ["bash", "-c", "echo 'sleeping for 5 min...' && sleep 5m"]
+}
+
+
+resource "docker_image" "this" {
+  name         = var.image_name
   keep_locally = false
 }
 
-resource "docker_container" "nginx" {
-  image = docker_image.nginx.image_id
+resource "docker_container" "this" {
+  image = docker_image.this.image_id
   name  = "tutorial"
+  command = var.command
   ports {
     internal = 80
-    external = 8888
+    external = 8000
   }
+}
+
+output "container_name" {
+    value = docker_container.this.name
+}
+
+output "inspect" {
+    value = "docker inspect ${docker_container.this.name}"
+    description = "command to get more info about the running docker container."
 }
