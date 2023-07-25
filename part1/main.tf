@@ -12,16 +12,22 @@ terraform {
 
 provider "docker" {}
 
-variable image_name {
-  type = string
+locals {
+  prefix = "dev_"
+  # here we could define additional local variables if desired.
+}
+
+
+variable "image_name" {
+  type        = string
   description = "name of Docker image to use"
   #default = "nginx:latest"
 }
 
-variable command {
-  type = list(string)
+variable "command" {
+  type        = list(string)
   description = "command to run in container"
-  default = ["bash", "-c", "echo 'sleeping for 5 min...' && sleep 5m"]
+  default     = ["bash", "-c", "echo 'sleeping for 5 min...' && sleep 5m"]
 }
 
 
@@ -31,8 +37,8 @@ resource "docker_image" "this" {
 }
 
 resource "docker_container" "this" {
-  image = docker_image.this.image_id
-  name  = "tutorial"
+  image   = docker_image.this.image_id
+  name    = "${local.prefix}tutorial"
   command = var.command
   ports {
     internal = 80
@@ -41,10 +47,10 @@ resource "docker_container" "this" {
 }
 
 output "container_name" {
-    value = docker_container.this.name
+  value = docker_container.this.name
 }
 
 output "inspect" {
-    value = "docker inspect ${docker_container.this.name}"
-    description = "command to get more info about the running docker container."
+  value       = "docker inspect ${docker_container.this.name}"
+  description = "command to get more info about the running docker container."
 }
